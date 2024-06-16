@@ -1,0 +1,117 @@
+#!/bin/sh
+
+set -euC
+
+
+get_session_name_from_user() {
+    read -p "Name new project: " input
+
+    while [[ $input = "new" ]]; do
+       echo "'new' is reserved. Choose another name." 
+    done
+    
+    echo $input
+}
+
+
+configure_new_session () {
+    # If project does not exist, create it and configure
+    local session_name="$1"
+
+    mkdir $session_name
+    cd $session_name
+
+    # If old session somehow exists, kill it
+    if tmux has-session -t $session_name 2>/dev/null ; then
+        tmux kill-session -t $session_name
+    fi
+
+    # Create session and all windows
+    tmux new-session -d -s "$session_name"
+    tmux new-window -t "$session_name:1" -n "editor"
+    tmux new-window -t "$session_name:2" -n "terminal"
+    tmux new-window -t "$session_name:3" -n "git" 
+    tmux new-window -t "$session_name:4" -n "database"
+    tmux new-window -t "$session_name:5" -n "config"
+
+    # Configure windows
+    tmux send-keys -t "$session_name:1" "echo | <C-c>" C-m
+    tmux send-keys -t "$session_name:2" "poetry init -n && poetry install && poetry shell" C-m
+    tmux send-keys -t "$session_name:4" "nvim -c ':DBUI'" C-m
+    tmux send-keys -t "$session_name:5" "cd ~/.config/nvim/ && v ." C-m
+    tmux send-keys -t "$session_name:3" "git init && lazygit" C-m
+    tmux send-keys -t "$session_name:1" "v" C-m
+    tmux kill-window -t "$session_name:0" 2>/dev/null
+
+    tmux attach -t "$session_name:1"
+}
+
+
+configure_new_session_in_existing_dir () {
+    # If project does not exist, create it and configure
+    local session_name="$1"
+
+    # If old session somehow exists, kill it
+    if tmux has-session -t $session_name 2>/dev/null ; then
+        tmux kill-session -t $session_name
+    fi
+
+    # Create session and all windows
+    tmux new-session -d -s "$session_name"
+    tmux new-window -t "$session_name:1" -n "editor"
+    tmux new-window -t "$session_name:2" -n "terminal"
+    tmux new-window -t "$session_name:3" -n "git" 
+    tmux new-window -t "$session_name:4" -n "database"
+    tmux new-window -t "$session_name:5" -n "config"
+
+    # Configure windows
+    tmux send-keys -t "$session_name:1" "echo | <C-c>" C-m
+    tmux send-keys -t "$session_name:2" "poetry shell" C-m
+    tmux send-keys -t "$session_name:4" "nvim -c ':DBUI'" C-m
+    tmux send-keys -t "$session_name:5" "cd ~/.config/nvim/ && v ." C-m
+    tmux send-keys -t "$session_name:3" "git init && lazygit" C-m
+    tmux send-keys -t "$session_name:1" "v" C-m
+    tmux kill-window -t "$session_name:0" 2>/dev/null
+
+    tmux attach -t "$session_name:1"
+}
+
+
+main () {
+    # Go to directory with projects
+    projects_directory=~/PROJECTS/
+    cd $projects_directory
+
+    # Select project
+    projects="new\n$(ls -1 $projects_directory)" 
+    projects_string=`echo "$projects"| tr ' ' '\n'`
+   
+    # Create array of directories
+    IFS=$'\n' projects_array=( $projects_string )
+
+    selected=`printf "$projects_string" | fzf`
+
+    if [[ $selected = "new" ]] ; then
+        # If selected new project, create it
+        session_name=$(get_session_name_from_user)
+        configure_new_session "$session_name"
+    else
+        session_name=$selected
+
+        # If selected existing project, attach it
+        cd $session_name
+        
+        # Attach to existing session or create new
+        if tmux has-session -t $session_name 2>/dev/null ; then
+            echo "Session found. Attaching..."
+            tmux attach -t "$session_name:1"
+        else
+            echo "Session does not exist. Creating..."
+            configure_new_session_in_existing_dir "$session_name"
+        fi
+    fi
+
+}
+
+
+main
