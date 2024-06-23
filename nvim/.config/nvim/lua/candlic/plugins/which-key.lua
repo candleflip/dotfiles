@@ -13,6 +13,7 @@ return {
 			["<leader>n"] = { name = "[N]oice" },
 			["<leader>h"] = { name = "[H]unk" },
 			["<leader>a"] = { name = "[A]dd docstring" },
+			["<leader>m"] = { name = "[M]arkdown" },
 
 			["<leader>c"] = { "[C]hange all occurances" },
 			["<leader>d"] = { "[D]iagnostics" },
