@@ -124,4 +124,4 @@ alias ls="eza --icons=always"
 zstyle ':omz:update' mode disabled
 
 
-source ~/powerlevel10k/powerlevel10k.zsh-theme
+source ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme
