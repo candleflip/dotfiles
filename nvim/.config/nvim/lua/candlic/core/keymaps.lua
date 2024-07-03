@@ -16,6 +16,11 @@ kmp.set("v", "K", ":m '<-2<CR>gv=gv")
 -- Change all word occurrences in file (super cool!)
 kmp.set("n", "<leader>c", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gc<Left><Left><Left>]])
 
+-- Add yank to default buffer (not vim buffer)
+kmp.set("n", "<leader>y", '"+y')
+kmp.set("v", "<leader>y", '"+y')
+kmp.set("n", "<leader>Y", '"+Y')
+
 -- Centralize cursor when moving
 kmp.set("n", "j", "jzz")
 kmp.set("n", "k", "kzz")
